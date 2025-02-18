@@ -24,6 +24,7 @@ def main():
 <author>wctang-data</author>''', file=out)
 
         idx = 0
+        items = []
         for dirpath, _, filenames in os.walk("."):
             dirpath = dirpath[2:]
             if dirpath.startswith(".git"):
@@ -32,8 +33,10 @@ def main():
                 if not (m := rex.match(filename)):
                     continue
                 info = pydub.utils.mediainfo(f'{filename}')
-                print(f'<item><title>{m[1]}</title><pubDate>{_now+datetime.timedelta(seconds=idx)}</pubDate><enclosure url="{base}/{filename}" type="audio/mpeg" length="{info["size"]}"/><itunes:duration>{int(float(info["duration"]))}</itunes:duration></item>', file=out)
-                idx += 1
+                items.append((m[1], filename, info["size"], info["duration"]))
+
+        for idx, item in enumerate(items):
+            print(f'<item><title>{item[0]}</title><pubDate>{_now+datetime.timedelta(days=-len(items)+idx)}</pubDate><enclosure url="{base}/{item[1]}" type="audio/mpeg" length="{item[2]}"/><itunes:duration>{int(float(item[3]))}</itunes:duration></item>', file=out)
 
         print('''</channel>
 </rss>''', file=out)
